@@ -13,6 +13,8 @@ import edu.stanford.nlp.trees.Tree;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import java.util.*;
@@ -20,7 +22,7 @@ import java.util.*;
 public class ViolentVerbsParser {
     
    Set violentWords;
-   String globalPpath = "./src/main/resources/violentVerbsDictionary.txt";
+   String globalPpath = "/violentVerbsDictionary.txt";
    TokenizerFactory<CoreLabel> tokenizerFactory;
    LexicalizedParser parser;
    
@@ -43,7 +45,9 @@ public class ViolentVerbsParser {
         violentWords = new HashSet<String>();
         
         try{
-            BufferedReader br = new BufferedReader(new FileReader(globalPpath));
+            InputStream in =
+                this.getClass().getResourceAsStream(globalPpath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String str;
             while ((str = br.readLine()) != null) {
                 str = str.toLowerCase();
@@ -75,17 +79,18 @@ public class ViolentVerbsParser {
         
         for(Tree leave : leaves){
             Tree parent = leave.parent(tree);
-            if(parent.label().value().contains("VB")){
-                WordTag tag = Morphology.stemStatic(leave.label().value()
-                    ,parent.label().value());
-                if(violentWords.contains(tag.value())){
-                    result.add(leave.label().value());
+            if(parent != null){
+                if(parent.label().value().contains("VB")){
+                    WordTag tag = Morphology.stemStatic(leave.label().value()
+                        ,parent.label().value());
+                    if(violentWords.contains(tag.value())){
+                        result.add(leave.label().value());
+                    }
                 }
             }
         }
     
-        return result;
-       
+        return result;      
    }
            
 }
