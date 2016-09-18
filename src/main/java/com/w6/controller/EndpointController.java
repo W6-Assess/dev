@@ -6,6 +6,7 @@ import com.w6.data.Article;
 import com.w6.data.Event;
 import com.w6.nlp.Parser;
 import com.w6.nlp.MySolrClient;
+import com.w6.services.appearance.SummuryPreparator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import java.text.DateFormatSymbols;
+import java.util.Locale;
 
 @Controller
 public class EndpointController {
@@ -24,7 +27,8 @@ public class EndpointController {
     protected static final String UPLOAD_VIEW = "upload";
     protected static final String QUERY_VIEW = "query";
     protected static final String DOCUMENTS_BY_EVENT_VIEW = "articlesOfEvent";
-    protected static final String REPORT_VIEW = "report";
+    protected static final String REPORT_VIEW = "try";
+//    protected static final String REPORT_VIEW = "report";
 
     protected MySolrClient solrClient = new MySolrClient();
     
@@ -159,13 +163,23 @@ public class EndpointController {
     public ModelAndView report(@RequestParam("month") String month) throws IOException, SolrServerException
     {
         ModelAndView modelAndView = new ModelAndView(REPORT_VIEW);
-        ArrayList<Event> eventsInRange = solrClient.getEventsInRange(month.concat("-01"), month.concat("-31"));
-        modelAndView.addObject("events", gson.toJson(eventsInRange));
-        ArrayList<String[] > sourses = new ArrayList<>();
+        
+//        uncomment it to run real solr client
+//        ArrayList<Event> eventsInRange = solrClient.getEventsInRange(month.concat("-01"), month.concat("-31"));
+        ArrayList<Event> eventsInRange = DummySolrClient.getEvents();
+        modelAndView.addObject("events", eventsInRange);
+        
+        String[] dateNames = month.split("-");
+        String yearNumber = dateNames[0];
+        String monthString = new DateFormatSymbols(Locale.ENGLISH).getMonths()[Integer.valueOf(dateNames[1])-1];
+        
+        
         
         for (Event event: eventsInRange)
         {
-            sourses.add(
+//            comment break if you use real solr client, not a dummy
+            if (1 == 1) break;
+            event.setSourses(
                     solrClient.getArticlesByEventId(event.id)
                             .stream()
                             .map(article -> article.sourse)
@@ -173,10 +187,10 @@ public class EndpointController {
             );
         }
             
-
-        modelAndView.addObject("sourses", gson.toJson(sourses));
-        modelAndView.addObject("month", month);
-        
+        modelAndView.addObject("year", yearNumber);
+        modelAndView.addObject("month", monthString);
+        modelAndView.addObject("monthNum", Integer.valueOf(dateNames[1]) - 1);
+        modelAndView.addObject("summary", SummuryPreparator.makeSummary(eventsInRange));
         return modelAndView;
     }  
     

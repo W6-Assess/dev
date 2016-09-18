@@ -152,7 +152,7 @@ public class MySolrClient
         
         newDocument.addField("id", article.id);
         newDocument.addField("title", article.title);
-        newDocument.addField("Date", article.date);
+        newDocument.addField("Date", article.getCalendar().toString());
         newDocument.addField("description", article.description);
         newDocument.addField("country", article.country);
         newDocument.addField("region", article.region);
@@ -267,7 +267,8 @@ public class MySolrClient
         for (long documentId = 1; documentId <= numberOfEvents; ++documentId)
         {
             Event event = getEventById(documentId);
-            if (event.date.compareTo(startDate) >= 0 && event.date.compareTo(endDate) <= 0)
+            //if (event.date.compareTo(startDate) >= 0 && event.date.compareTo(endDate) <= 0)
+            if (true)
             {
                 events.add(event);            
             }
@@ -275,7 +276,7 @@ public class MySolrClient
         events.sort(new Comparator<Event>() {
             @Override
             public int compare(Event a, Event b) {
-                return a.date.compareTo(b.date);
+                return a.getDate().compareTo(b.getDate());
             }
         });
         return events;        
